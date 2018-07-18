@@ -25,18 +25,24 @@ func appendSessionCookie(req *http.Request) *http.Request {
 	return req
 }
 
-func createHTTPRequestWithMid(mid int) *http.Request {
+func createHTTPRequestWithMid(mid int) (*http.Request, error) {
 	values := url.Values{}
 	values.Add("mid", strconv.Itoa(mid))
 	base := "https://www.a103.net/azusa/form_oth/view_favs.cgi"
 	url := base + "?" + values.Encode()
-	req, _ := http.NewRequest("GET", url, nil)
-	return req
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
 }
 
-func readContentString(resp *http.Response) string {
-	buffer, _ := ioutil.ReadAll(resp.Body)
-	return string(buffer)
+func readContentString(resp *http.Response) (string, error) {
+	buffer, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(buffer), err
 }
 
 func isDenialMessage(content string) bool {
@@ -45,13 +51,25 @@ func isDenialMessage(content string) bool {
 }
 
 func main() {
-	req := createHTTPRequestWithMid(622592)
+	req, err := createHTTPRequestWithMid(622592)
+	if err != nil {
+		fmt.Println("!createHTTPRequestWithMid ->")
+		fmt.Println(err)
+	}
 	req = appendSessionCookie(req)
 
 	client := new(http.Client)
-	resp, _ := client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("!client.Do ->")
+		fmt.Println(err)
+	}
 
-	content := readContentString(resp)
+	content, err := readContentString(resp)
+	if err != nil {
+		fmt.Println("!readContentString ->")
+		fmt.Println(err)
+	}
 
 	fmt.Println(content)
 
