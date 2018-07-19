@@ -8,9 +8,9 @@ package env
 
 /*
 const (
-	// UID azusaのユーザーID
-	UID = 0
-	// Password azusaのログインパスワード
-	Password = "pass"
+	// Session session
+	Session = """
+	// A103Session a103session
+	A103Session = ""
 )
 */
