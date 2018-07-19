@@ -80,6 +80,10 @@ func convergeDataByMidBetween(startMid int, endMid int) chan []mail {
 				remains--
 				log.Printf("mid %v ended. %v / %v remains\n", mid, remains, allcount)
 			}()
+			// これではだめ
+			if remains > 10 {
+				time.Sleep(time.Duration(rand.Int63n(60)) * time.Second)
+			}
 			de[mid-startMid], err = getMailByMid(mid)
 			if err != nil {
 				log.Println("!getMailByMid ->")
