@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,7 +15,7 @@ import (
 
 const (
 	// MaxLimit 最大同時接続数
-	MaxLimit = 100
+	MaxLimit = 150
 )
 
 type mail struct {
@@ -111,11 +113,23 @@ func convergeDataByMidBetween(startMid int, endMid int) chan []mail {
 }
 
 func main() {
-	// c := convergeDataByMidBetween(603657, 622345)
+	file, err := os.OpenFile("test.txt", os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Println("err opening file")
+		log.Println(err)
+		return
+	}
+	defer file.Close()
 	log.Println("procedure start")
-	c := convergeDataByMidBetween(603657, 622345)
+	start := 603657
+	// end := 622345
+	end := 603660
+	c := convergeDataByMidBetween(start, end)
 	arr := <-c
-	for m := range arr {
-		fmt.Println(arr[m])
+	var m mail
+	for midx := range arr {
+		m = arr[midx]
+		// fmt.Println(m)
+		fmt.Fprintf(file, "%v,%v,%v\n", m.mid, m.sender, strings.Join(m.recievers, ","))
 	}
 }
