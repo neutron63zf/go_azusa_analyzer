@@ -7,20 +7,23 @@ import (
 	"./parsedoc"
 )
 
-func main() {
-
-	doc, err := getdoc.GetDocumentByMid(622592)
+func printSR(mid int) {
+	doc, err := getdoc.GetDocumentByMid(mid)
 	if err != nil {
 		fmt.Println("!getdoc.GetDocumentByMid ->")
 		fmt.Println(err)
 		return
 	}
-	html, _ := doc.Find(".azusa-log").Html()
-	fmt.Println(html)
-	// isDenialMessage := parsedoc.IsDenialMessage(doc)
-	// fmt.Println(isDenialMessage)
-	// timeStr := parsedoc.GetTimeStr(doc)
-	// fmt.Println(timeStr)
-	sender, _ := parsedoc.GetSender(doc)
+	sender, recievers, err := parsedoc.GetSenderAndRecievers(doc)
+	fmt.Println(mid)
 	fmt.Println(sender)
+	fmt.Println(recievers)
+	fmt.Println()
+}
+
+func main() {
+	for i := 622000; i < 622600; i++ {}
+		// go をつけると、並列先のが終わる前にメインのスレッドが終わってしまい、何も出ない
+		printSR(i)
+	}
 }

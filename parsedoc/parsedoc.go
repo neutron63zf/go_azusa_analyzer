@@ -3,6 +3,7 @@ package parsedoc
 import (
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -20,21 +21,24 @@ func GetTimeStr(doc *goquery.Document) string {
 	return doc.Find(".azusa-log i").Text()
 }
 
-// GetSender return sender name by string
-func GetSender(doc *goquery.Document) (bool, error) {
-	// 正規表現で組むしか無い
+// GetSenderAndReciever returns sender recievers slice
+func GetSenderAndRecievers(doc *goquery.Document) (string, []string, error) {
+	// azusaのメッセージの部分のマークアップは存在しないため、正規表現しかない
 	html, err := doc.Find(".azusa-log").Html()
 	if err != nil {
 		log.Println("!doc.Find->")
-		return false, err
+		return "", nil, err
 	}
 	// ここのスペースはどうやらただの半角スペースでは 無いらしい
-	r1 := regexp.MustCompile(`\[#\d+\]  (.*?) → (.*?)<br/>`)
-	result := r1.FindAllStringSubmatch(html, -1)
-	if !r1.MatchString(html) {
-		return false, nil
+	// おそらく&nbsp;の変換先なのだが...
+	r := regexp.MustCompile(`\[#\d+\]  (.*?) → (.*?)<br/>`)
+	if !r.MatchString(html) {
+		return "", nil, nil
 	}
-	log.Println(result[0][2])
-	log.Println([]int{1, 2, 3})
-	return r1.MatchString(html), nil
+	result := r.FindAllStringSubmatch(html, -1)
+	senderAndReciever := result[0][1:]
+	sender := senderAndReciever[0]
+	// "、"で区切られているので...
+	recievers := strings.Split(senderAndReciever[1], "、")
+	return sender, recievers, nil
 }
