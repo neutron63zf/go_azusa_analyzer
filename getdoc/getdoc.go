@@ -48,6 +48,10 @@ func GetDocumentByMid(mid int) (*goquery.Document, error) {
 
 	client := new(http.Client)
 	resp, err := client.Do(req)
+	/* c := sendreq.DoRequest(client, req)
+	ret := <-c
+	resp := ret.Resp
+	err = ret.Err */
 	if err != nil {
 		log.Println("!client.Do ->")
 		return nil, err

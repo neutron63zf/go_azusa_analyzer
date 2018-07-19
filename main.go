@@ -11,6 +11,11 @@ import (
 	"./parsedoc"
 )
 
+const (
+	// MaxLimit 最大同時接続数
+	MaxLimit = 100
+)
+
 type mail struct {
 	mid       int
 	sender    string
@@ -35,7 +40,7 @@ func getMailByMid(mid int) (mail, error) {
 			continue
 		}
 		if !parsedoc.IsNotDenialMessage(doc) || !parsedoc.IsValidMid(doc) || !parsedoc.IsTheMidExists(doc) {
-			log.Println("!parsedoc, document not valid")
+			log.Printf("!parsedoc, document not valid on mid %v", mid)
 			m = mail{
 				isValid: false,
 			}
@@ -68,22 +73,25 @@ func getMailByMid(mid int) (mail, error) {
 func convergeDataByMidBetween(startMid int, endMid int) chan []mail {
 	var wg sync.WaitGroup
 	var err error
-	remains := 0
 	allcount := endMid - startMid + 1
+	remains := allcount
+	concuurent := 0
+	// 同時接続数を制限
+	limitter := make(chan bool, MaxLimit)
 	de := make([]mail, allcount, allcount)
 	for i := startMid; i <= endMid; i++ {
 		wg.Add(1)
-		remains++
+		concuurent++
+		limitter <- true
 		go func(mid int) {
+			// limitterの値を捨てる
+			defer func() { <-limitter }()
 			defer func() {
 				wg.Done()
 				remains--
-				log.Printf("mid %v ended. %v / %v remains\n", mid, remains, allcount)
+				concuurent--
+				log.Printf("mid %v ended. %v / %v remains. %v process working\n", mid, remains, allcount, concuurent)
 			}()
-			// これではだめ
-			if remains > 10 {
-				time.Sleep(time.Duration(rand.Int63n(60)) * time.Second)
-			}
 			de[mid-startMid], err = getMailByMid(mid)
 			if err != nil {
 				log.Println("!getMailByMid ->")
@@ -103,8 +111,9 @@ func convergeDataByMidBetween(startMid int, endMid int) chan []mail {
 }
 
 func main() {
-	c := convergeDataByMidBetween(603657, 622345)
+	// c := convergeDataByMidBetween(603657, 622345)
 	log.Println("procedure start")
+	c := convergeDataByMidBetween(603657, 622345)
 	arr := <-c
 	for m := range arr {
 		fmt.Println(arr[m])
