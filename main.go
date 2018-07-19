@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -19,6 +20,8 @@ type mail struct {
 
 func getMailByMid(mid int) (mail, error) {
 	var m mail
+	var interval int64
+	interval = 2
 	for {
 		// log.Printf("try loading %v...\n", mid)
 		doc, err := getdoc.GetDocumentByMid(mid)
@@ -27,7 +30,8 @@ func getMailByMid(mid int) (mail, error) {
 			log.Println(err)
 			// retry
 			// return m, err
-			time.Sleep(3 * time.Second)
+			time.Sleep(time.Duration(rand.Int63n(interval)) * time.Second)
+			interval = interval * 2
 			continue
 		}
 		if !parsedoc.IsNotDenialMessage(doc) || !parsedoc.IsValidMid(doc) || !parsedoc.IsTheMidExists(doc) {
